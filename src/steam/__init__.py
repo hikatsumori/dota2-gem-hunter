@@ -1,5 +1,6 @@
 # Dota 2 Socket Scanner - Steam Package
 
+from src.steam.client import SteamWebClient, create_steam_client
 from src.steam.models import (
     AlertRule,
     AlertSent,
@@ -26,4 +27,6 @@ __all__ = [
     "MarketSearchResult",
     "MarketSearchResponse",
     "ListingPageData",
+    "SteamWebClient",
+    "create_steam_client",
 ]

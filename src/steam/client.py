@@ -286,7 +286,7 @@ class SteamWebClient:
             "GET", listing_url, referer="https://steamcommunity.com/market/"
         )
 
-        return response.text  # type: ignore[no-any-return]
+        return response.text
 
     async def get_item_schema(self) -> dict[str, Any]:
         """

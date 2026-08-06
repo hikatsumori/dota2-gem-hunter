@@ -1,11 +1,12 @@
 # Alembic environment configuration for Dota 2 Socket Scanner
 # This file is used by Alembic to configure the migration environment
 
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 import sys
+from logging.config import fileConfig
 from pathlib import Path
+
+from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # Add src to path so we can import config
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

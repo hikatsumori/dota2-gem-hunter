@@ -1,0 +1,124 @@
+# Dota 2 Socket Scanner - GitHub Actions Workflow
+# Runs every 5 minutes via cron to scan Steam Market for rare socketed items
+
+name: Dota 2 Socket Scanner
+
+on:
+  # Run every 5 minutes
+  schedule:
+    - cron: "*/5 * * * *"
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+  # Run on push to main (for testing)
+  push:
+    branches: [main]
+
+# Permissions needed for the workflow
+permissions:
+  contents: read
+
+# Environment variables available to all jobs
+env:
+  PYTHON_VERSION: "3.11"
+  # Secrets are injected from GitHub repository settings:
+  # SUPABASE_DB_URL
+  # STEAM_WEBAPI_KEY
+  # DISCORD_WEBHOOK_URL
+
+jobs:
+  scan:
+    name: Scan Steam Market
+    runs-on: ubuntu-latest
+    timeout-minutes: 10  # Safety timeout (GitHub Actions max is 6 hours)
+
+    steps:
+      # ─── Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ─── Python Setup ─────────────────────────────────────────────────────
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      # ─── Install Dependencies ─────────────────────────────────────────────
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Install package in development mode
+          pip install -e .
+
+      # ─── Run Database Migrations ──────────────────────────────────────────
+      - name: Run database migrations
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          alembic upgrade head
+
+      # ─── Run Scanner ──────────────────────────────────────────────────────
+      - name: Run socket scanner
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          STEAM_WEBAPI_KEY: ${{ secrets.STEAM_WEBAPI_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_ACTIONS: "true"
+        run: |
+          python -m src.main
+
+      # ─── Cleanup (Optional) ───────────────────────────────────────────────
+      - name: Cleanup old data (30+ days)
+        if: always()
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          python -c "
+          import asyncio
+          import asyncpg
+          import os
+          async def cleanup():
+              conn = await asyncpg.connect(os.environ['SUPABASE_DB_URL'])
+              await conn.execute('''
+                  DELETE FROM listings WHERE fetched_at < NOW() - INTERVAL '30 days'
+              ''')
+              await conn.execute('''
+                  DELETE FROM price_history WHERE recorded_at < NOW() - INTERVAL '30 days'
+              ''')
+              await conn.execute('''
+                  DELETE FROM alerts_sent WHERE sent_at < NOW() - INTERVAL '30 days'
+              ''')
+              await conn.close()
+          asyncio.run(cleanup())
+          print('Cleanup completed')
+
+  # ─── Lint & Type Check (Separate job for fast feedback) ─────────────────
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dev dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -e ".[dev]"
+
+      - name: Run ruff
+        run: ruff check .
+
+      - name: Run mypy
+        run: mypy src

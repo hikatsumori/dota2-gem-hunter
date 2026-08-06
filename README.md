@@ -1,0 +1,240 @@
+# Dota 2 Steam Market Rare Socket Scanner
+
+A GitHub Actions + Supabase + Discord scanner that monitors the Steam Community Market for Dota 2 items with rare sockets (Ethereal and Prismatic gems) and alerts when they're listed below market value.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    GITHUB ACTIONS (Cron)                        │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │ Fetch       │→ │ Parse &     │→ │ Analyze &   │            │
+│  │ Listings    │  │ Detect Gems │  │ Alert       │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+│         │               │               │                       │
+│         ▼               ▼               ▼                       │
+│  ┌─────────────────────────────────────────────┐              │
+│  │         SUPABASE POSTGRESQL (Free Tier)     │              │
+│  │  Listings • Gems • Price History • Alerts   │              │
+│  └─────────────────────────────────────────────┘              │
+│                              │                                │
+│                              ▼                                │
+│                    ┌───────────────┐                          │
+│                    │ Discord       │                          │
+│                    │ Webhook       │                          │
+│                    └───────────────┘                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+- **GitHub Actions cron** (every 5 min) — free, reliable for light scans
+- **Supabase PostgreSQL** (free tier: 500MB) — persistent storage
+- **Steam WebAPI** + **HTML parsing** — API for listings, HTML for gem details
+- **Discord webhook** — simple, reliable notifications
+- **Hardcoded alert rules** in config — simple, version-controlled
+
+---
+
+## Features
+
+- Scans 5 item types: **courier, ward, announcer, hud, loading_screen**
+- Detects **Ethereal** and **Prismatic** gems via HTML parsing + fuzzy matching
+- Tracks price history and calculates market averages
+- 3 configurable alert rules (hardcoded in `config.py`)
+- Deduplicates alerts (24-hour cooldown per listing)
+- Auto-cleans data older than 30 days
+- Rate-limited (3s delay, max 5 pages per item type)
+
+---
+
+## Alert Rules (Hardcoded)
+
+| Rule | Gem Types | Max Price | Min Discount |
+|------|-----------|-----------|--------------|
+| Ethereal Gem Under $100 | Ethereal | $100 | 30% below avg |
+| Prismatic Gem Under $150 | Prismatic | $150 | 25% below avg |
+| Any Rare Socket Deep Discount | Ethereal + Prismatic | $500 | 50% below avg |
+
+---
+
+## Quick Start
+
+### 1. Clone & Install
+
+```bash
+git clone <repo-url>
+cd dota2-socket-scanner
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pip install -e ".[dev]"
+```
+
+### 2. Configure Environment
+
+Copy `.env.example` to `.env` and fill in your secrets:
+
+```bash
+cp .env.example .env
+# Edit .env with your values
+```
+
+Required environment variables:
+
+| Variable | Description | Where to get |
+|----------|-------------|--------------|
+| `SUPABASE_DB_URL` | PostgreSQL connection string | Supabase Dashboard → Settings → Database |
+| `STEAM_WEBAPI_KEY` | Steam WebAPI key | https://steamcommunity.com/dev/apikey |
+| `DISCORD_WEBHOOK_URL` | Discord webhook URL | Server Settings → Integrations → Webhooks |
+
+### 3. Initialize Database
+
+```bash
+alembic upgrade head
+```
+
+This creates all tables in your Supabase database.
+
+### 4. Run Scanner Locally
+
+```bash
+python -m src.main
+```
+
+---
+
+## Project Structure
+
+```
+dota2-socket-scanner/
+├── .github/
+│   └── workflows/
+│       └── scanner.yml           # GitHub Actions cron workflow
+├── src/
+│   ├── __init__.py
+│   ├── config.py                 # All configuration (alert rules, env vars)
+│   ├── steam/
+│   │   ├── __init__.py
+│   │   ├── client.py             # Steam WebAPI client
+│   │   ├── parser.py             # HTML parser for gem/socket details
+│   │   └── models.py             # Data models (Listing, Gem, Item)
+│   ├── database/
+│   │   ├── __init__.py
+│   │   ├── connection.py         # DB connection pool
+│   │   ├── schema.sql            # SQL schema
+│   │   ├── repositories.py       # Data access layer
+│   │   └── migrations/           # Alembic migrations
+│   ├── analyzer/
+│   │   ├── __init__.py
+│   │   ├── price_analyzer.py     # Price comparison logic
+│   │   └── gem_detector.py       # Rare socket/gem detection
+│   ├── notifier/
+│   │   ├── __init__.py
+│   │   └── discord.py            # Discord webhook sender
+│   └── main.py                   # Entry point for GH Action
+├── tests/
+│   ├── test_gem_detector.py
+│   ├── test_price_analyzer.py
+│   └── test_parser.py
+├── data/
+│   └── gems.json                 # Curated gem database (ethereal/prismatic)
+├── alembic.ini
+├── pyproject.toml
+├── requirements.txt
+├── Dockerfile
+└── README.md
+```
+
+---
+
+## Development
+
+### Run Linting & Type Checking
+
+```bash
+ruff check .
+mypy src
+```
+
+### Run Tests
+
+```bash
+pytest
+```
+
+### Database Migrations
+
+```bash
+# Create new migration
+alembic revision --autogenerate -m "description"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback
+alembic downgrade -1
+```
+
+### Docker Development
+
+```bash
+# Build
+docker build -t dota2-scanner .
+
+# Run scanner
+docker run --env-file .env dota2-scanner
+
+# Run migrations
+docker run --env-file .env dota2-scanner alembic upgrade head
+
+# Run tests
+docker run --env-file .env dota2-scanner pytest
+```
+
+---
+
+## Deployment (GitHub Actions)
+
+1. Push to GitHub
+2. Add secrets in **Repository Settings → Secrets and variables → Actions**:
+   - `SUPABASE_DB_URL`
+   - `STEAM_WEBAPI_KEY`
+   - `DISCORD_WEBHOOK_URL`
+3. Workflow runs automatically every 5 minutes via cron
+
+The workflow also includes a separate lint/type-check job for fast feedback on PRs.
+
+---
+
+## Discord Alert Format
+
+```
+🔥 Rare Socket Opportunity
+
+**Item:** Unusual Courier Name
+**Gems:**
+  • Ethereal: Trail of the Burning Doom
+  • Prismatic: Ships in the Night
+
+**Price:** $87.50
+**Avg Price:** $175.00
+**Discount:** 50% below average
+
+**Market Link:** https://steamcommunity.com/market/listings/570/...
+
+**Rule Matched:** Ethereal Gem Under $100
+```
+
+---
+
+## Data Retention
+
+- Listings, price history, and alerts older than **30 days** are automatically deleted
+- Cleanup runs after each scan via GitHub Actions
+
+---
+
+## License
+
+MIT License - feel free to use and modify.

@@ -1,0 +1,202 @@
+{
+  "ethereal": [
+    {
+      "name": "Ethereal Flame",
+      "aliases": ["Ethereal Flame", "Eth Flame", "Ethereal Fire"]
+    },
+    {
+      "name": "Trail of the Burning Doom",
+      "aliases": ["Burning Doom", "Trail Burning Doom", "Doom Trail"]
+    },
+    {
+      "name": "Trail of the Crimson Witness",
+      "aliases": ["Crimson Witness", "Trail Crimson Witness", "Witness Trail"]
+    },
+    {
+      "name": "Dreaded Flame",
+      "aliases": ["Dreaded Flame", "Dread Flame"]
+    },
+    {
+      "name": "Fearless Flame",
+      "aliases": ["Fearless Flame", "Fearless Fire"]
+    },
+    {
+      "name": "Foulfell Shard",
+      "aliases": ["Foulfell Shard", "Foulfell"]
+    },
+    {
+      "name": "Greevil's Greed",
+      "aliases": ["Greevil Greed", "Greed"]
+    },
+    {
+      "name": "Demon's Blood",
+      "aliases": ["Demons Blood", "Demon Blood"]
+    },
+    {
+      "name": "Ethereal Spirit",
+      "aliases": ["Ethereal Spirit", "Eth Spirit"]
+    },
+    {
+      "name": "Essence of the Malignant",
+      "aliases": ["Malignant Essence", "Essence Malignant"]
+    },
+    {
+      "name": "Haunted Spirit",
+      "aliases": ["Haunted Spirit", "Haunt Spirit"]
+    },
+    {
+      "name": "Legacy of the Ancestral",
+      "aliases": ["Ancestral Legacy", "Legacy Ancestral"]
+    },
+    {
+      "name": "Luminous Gaze",
+      "aliases": ["Luminous Gaze", "Lumina Gaze"]
+    },
+    {
+      "name": "Mischievous Spirit",
+      "aliases": ["Mischievous Spirit", "Mischief Spirit"]
+    },
+    {
+      "name": "Piercing Light",
+      "aliases": ["Piercing Light", "Pierce Light"]
+    },
+    {
+      "name": "Quiet Spirit",
+      "aliases": ["Quiet Spirit", "Silent Spirit"]
+    },
+    {
+      "name": "Resonant Energy",
+      "aliases": ["Resonant Energy", "Resonance Energy"]
+    },
+    {
+      "name": "Spirit of the Oni",
+      "aliases": ["Oni Spirit", "Spirit Oni"]
+    },
+    {
+      "name": "Stolen Beauty",
+      "aliases": ["Stolen Beauty", "Beauty Stolen"]
+    },
+    {
+      "name": "Terrorblade's Reflection",
+      "aliases": ["Terrorblade Reflection", "Reflection Terrorblade"]
+    },
+    {
+      "name": "Trail of the Wraith",
+      "aliases": ["Wraith Trail", "Trail Wraith"]
+    },
+    {
+      "name": "Vile Maw",
+      "aliases": ["Vile Maw", "Maw Vile"]
+    },
+    {
+      "name": "Vishkar's Gaze",
+      "aliases": ["Vishkar Gaze", "Gaze Vishkar"]
+    },
+    {
+      "name": "Wailing Spirit",
+      "aliases": ["Wailing Spirit", "Wail Spirit"]
+    },
+    {
+      "name": "Weeping Spirit",
+      "aliases": ["Weeping Spirit", "Weep Spirit"]
+    }
+  ],
+  "prismatic": [
+    {
+      "name": "Ships in the Night",
+      "aliases": ["Ships Night", "Ships in Night"]
+    },
+    {
+      "name": "Corrupted Realm",
+      "aliases": ["Corrupted Realm", "Corrupt Realm"]
+    },
+    {
+      "name": "Deserted Plain",
+      "aliases": ["Deserted Plain", "Desert Plain"]
+    },
+    {
+      "name": "Emerald Nightmare",
+      "aliases": ["Emerald Nightmare", "Emerald Night"]
+    },
+    {
+      "name": "Fractured Environment",
+      "aliases": ["Fractured Environment", "Fracture Environment"]
+    },
+    {
+      "name": "Gloomy Grotto",
+      "aliases": ["Gloomy Grotto", "Gloom Grotto"]
+    },
+    {
+      "name": "Highland Tundra",
+      "aliases": ["Highland Tundra", "Highland"]
+    },
+    {
+      "name": "Luminous Grove",
+      "aliases": ["Luminous Grove", "Lumina Grove"]
+    },
+    {
+      "name": "Molten Front",
+      "aliases": ["Molten Front", "Molten"]
+    },
+    {
+      "name": "Murky Woods",
+      "aliases": ["Murky Woods", "Murky Wood"]
+    },
+    {
+      "name": "Pristine Sky",
+      "aliases": ["Pristine Sky", "Pure Sky"]
+    },
+    {
+      "name": "Ruined City",
+      "aliases": ["Ruined City", "Ruins City"]
+    },
+    {
+      "name": "Shadowed Realm",
+      "aliases": ["Shadowed Realm", "Shadow Realm"]
+    },
+    {
+      "name": "Shrouded Steps",
+      "aliases": ["Shrouded Steps", "Shroud Steps"]
+    },
+    {
+      "name": "Spectral Mountains",
+      "aliases": ["Spectral Mountains", "Spectral Mountain"]
+    },
+    {
+      "name": "Starlit Grove",
+      "aliases": ["Starlit Grove", "Star Grove"]
+    },
+    {
+      "name": "Sunbaked Plateau",
+      "aliases": ["Sunbaked Plateau", "Sunbaked"]
+    },
+    {
+      "name": "Twilight Meadow",
+      "aliases": ["Twilight Meadow", "Twilight"]
+    },
+    {
+      "name": "Underground River",
+      "aliases": ["Underground River", "Subterranean River"]
+    },
+    {
+      "name": "Venomous Bog",
+      "aliases": ["Venomous Bog", "Venom Bog"]
+    },
+    {
+      "name": "Verdant Nile",
+      "aliases": ["Verdant Nile", "Verdant"]
+    },
+    {
+      "name": "Volcanic Island",
+      "aliases": ["Volcanic Island", "Volcano Island"]
+    },
+    {
+      "name": "Wailing Woods",
+      "aliases": ["Wailing Woods", "Wail Woods"]
+    },
+    {
+      "name": "Whispering Woods",
+      "aliases": ["Whispering Woods", "Whisper Woods"]
+    }
+  ]
+}

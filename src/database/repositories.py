@@ -172,6 +172,21 @@ class GemRepository:
             )
             return [Gem(**dict(row)) for row in rows]
 
+    async def cleanup_old(self, older_than_days: int = 30) -> int:
+        """
+        Delete gems older than N days (based on created_at).
+        Returns the number of deleted rows.
+        Note: Gems are typically cleaned up via CASCADE from listings deletion,
+        but this provides a direct cleanup option.
+        """
+        cutoff = datetime.now(UTC) - timedelta(days=older_than_days)
+        async with self._pool.acquire() as conn:
+            result = await conn.execute(
+                "DELETE FROM gems WHERE created_at < $1",
+                cutoff,
+            )
+            return int(result.split()[-1]) if result != "DELETE 0" else 0
+
 
 class PriceHistoryRepository:
     """Repository for aggregated price history snapshots."""
@@ -300,3 +315,16 @@ class AlertRepository:
                 datetime.now(UTC),
             )
             return row["id"]  # type: ignore[no-any-return]
+
+    async def cleanup_old(self, older_than_days: int = 30) -> int:
+        """
+        Delete alert records older than N days.
+        Returns the number of deleted rows.
+        """
+        cutoff = datetime.now(UTC) - timedelta(days=older_than_days)
+        async with self._pool.acquire() as conn:
+            result = await conn.execute(
+                "DELETE FROM alerts_sent WHERE sent_at < $1",
+                cutoff,
+            )
+            return int(result.split()[-1]) if result != "DELETE 0" else 0

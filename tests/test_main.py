@@ -680,7 +680,7 @@ async def test_main_runs_all_item_types(
          patch("src.main.PriceAnalyzer"), \
          patch("src.main.DiscordNotifier"), \
          patch("src.main.close_pool", new_callable=AsyncMock) as mock_close_pool, \
-         patch("src.config.validate_required_env", return_value=[]), \
+         patch("src.main.validate_required_env", return_value=[]), \
          patch("src.main.scan_item_type", new_callable=AsyncMock) as mock_scan_item_type:
 
         mock_scan_item_type.side_effect = mock_scan_results
@@ -706,7 +706,7 @@ async def test_main_validates_env_variables(
     mock_db_pool: AsyncMock,
 ) -> None:
     """Test that main() validates required environment variables."""
-    with patch("src.config.validate_required_env", return_value=["SUPABASE_DB_URL", "STEAM_WEBAPI_KEY"]), \
+    with patch("src.main.validate_required_env", return_value=["SUPABASE_DB_URL", "STEAM_WEBAPI_KEY"]), \
          patch("src.main.close_pool", new_callable=AsyncMock):
 
         with pytest.raises(RuntimeError, match="Missing required environment variables"):
@@ -738,7 +738,7 @@ async def test_main_aggregates_metrics(
          patch("src.main.PriceAnalyzer"), \
          patch("src.main.DiscordNotifier"), \
          patch("src.main.close_pool", new_callable=AsyncMock), \
-         patch("src.config.validate_required_env", return_value=[]), \
+         patch("src.main.validate_required_env", return_value=[]), \
          patch("src.main.scan_item_type", new_callable=AsyncMock) as mock_scan_item_type:
 
         mock_scan_item_type.side_effect = mock_metrics

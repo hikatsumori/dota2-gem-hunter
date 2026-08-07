@@ -13,7 +13,7 @@ from decimal import Decimal
 from datetime import datetime, UTC
 from typing import TYPE_CHECKING
 
-from src.config import SCAN_CONFIG, ALERT_RULES, get_db_url
+from src.config import SCAN_CONFIG, ALERT_RULES, get_db_url, validate_required_env
 from src.database.connection import get_pool, close_pool
 from src.database.repositories import (
     ItemRepository,
@@ -28,6 +28,7 @@ from src.steam.parser import ListingParser
 from src.analyzer.gem_detector import GemDetector
 from src.analyzer.price_analyzer import PriceAnalyzer, AlertMatch
 from src.notifier.discord import DiscordNotifier
+from src.health import log_scan_metrics
 
 if TYPE_CHECKING:
     import asyncpg
@@ -364,7 +365,6 @@ async def main() -> None:
     respecting rate limits via the SteamWebClient.
     """
     # Validate required environment variables
-    from src.config import validate_required_env
     missing = validate_required_env()
     if missing:
         raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
@@ -372,6 +372,7 @@ async def main() -> None:
     item_types = SCAN_CONFIG["item_types"]
     logger.info("Starting full market scan for item types: %s", item_types)
 
+    scan_started_at = datetime.now(UTC)
     overall_metrics = {
         "item_types_scanned": 0,
         "total_listings_checked": 0,
@@ -403,6 +404,9 @@ async def main() -> None:
                 await asyncio.sleep(2)
 
     finally:
+        scan_completed_at = datetime.now(UTC)
+        duration_seconds = (scan_completed_at - scan_started_at).total_seconds()
+
         logger.info("=" * 50)
         logger.info("FULL SCAN COMPLETE")
         logger.info("=" * 50)
@@ -416,6 +420,22 @@ async def main() -> None:
             overall_metrics["total_alerts_sent"],
             overall_metrics["total_errors"],
         )
+
+        # Log scan metrics to database for health monitoring
+        try:
+            await log_scan_metrics(
+                scan_type="full",
+                listings_scanned=overall_metrics["total_listings_checked"],
+                gems_found=overall_metrics["total_gems_found"],
+                alerts_sent=overall_metrics["total_alerts_sent"],
+                errors=overall_metrics["total_errors"],
+                duration_seconds=duration_seconds,
+                started_at=scan_started_at,
+                completed_at=scan_completed_at,
+            )
+        except Exception as e:
+            logger.error("Failed to log scan metrics: %s", e)
+
         await close_pool()
 
 

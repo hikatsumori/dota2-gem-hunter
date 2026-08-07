@@ -36,6 +36,9 @@ ITEM_TYPE_QUERY_MAP: dict[str, str] = {
     "announcer": "announcer",
     "hud": "hud",
     "loading_screen": "loading screen",
+    "emoticon": "emoticon",
+    "chat_wheel": "chat wheel",
+    "music_pack": "music pack",
 }
 
 

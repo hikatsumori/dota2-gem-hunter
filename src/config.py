@@ -71,7 +71,7 @@ settings = Settings()
 # ──────────────────────────────────────────────────────────────────────────────
 
 SCAN_CONFIG: dict[str, Any] = {
-    "item_types": ["courier", "ward", "announcer", "hud", "loading_screen"],
+    "item_types": ["courier", "ward", "announcer", "hud", "loading_screen", "emoticon", "chat_wheel", "music_pack"],
     "max_pages_per_type": 5,           # ~100 listings per type
     "request_delay_seconds": 3,        # Rate limiting: 3s between requests
     "max_retries": 3,

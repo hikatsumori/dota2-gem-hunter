@@ -8,8 +8,8 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# Add src to path so we can import config
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Add project root to path so we can import src.config
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 # Import our settings to get the database URL
 from src.config import get_db_url

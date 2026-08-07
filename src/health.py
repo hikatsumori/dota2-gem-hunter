@@ -7,8 +7,7 @@ for monitoring and observability.
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
-from decimal import Decimal
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from src.database.connection import get_pool
@@ -51,7 +50,7 @@ async def log_scan_metrics(
     if completed_at is None:
         completed_at = now
     if started_at is None:
-        started_at = now - __import__("datetime").timedelta(seconds=duration_seconds)
+        started_at = now - timedelta(seconds=duration_seconds)
 
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
@@ -104,7 +103,7 @@ async def get_recent_scan_metrics(hours: int = 24) -> list[dict]:
         List of scan metrics records as dictionaries.
     """
     pool = await get_pool()
-    since = datetime.now(UTC) - __import__("datetime").timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
 
     async with pool.acquire() as conn:
         rows = await conn.fetch(
@@ -127,7 +126,7 @@ async def get_scan_metrics_summary(hours: int = 24) -> dict:
         Dictionary with aggregated counts and averages.
     """
     pool = await get_pool()
-    since = datetime.now(UTC) - __import__("datetime").timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
 
     async with pool.acquire() as conn:
         row = await conn.fetchrow(

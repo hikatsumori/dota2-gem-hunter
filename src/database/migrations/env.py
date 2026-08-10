@@ -52,6 +52,12 @@ import os
 if db_params["password"] is None:
     db_params["password"] = os.environ.get("PGPASSWORD")
 
+# Ensure password is set
+if db_params["password"] is None:
+    raise RuntimeError(
+        "Database password not found. Set password in SUPABASE_DB_URL or PGPASSWORD environment variable."
+    )
+
 # Debug: print parsed components
 print(f"DEBUG: db_params = {db_params}")
 

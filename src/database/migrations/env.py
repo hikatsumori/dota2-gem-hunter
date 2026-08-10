@@ -4,9 +4,11 @@
 import sys
 from logging.config import fileConfig
 from pathlib import Path
+from urllib.parse import urlparse
 
 from alembic import context
-from sqlalchemy import pool
+from sqlalchemy import create_engine, pool
+from sqlalchemy.engine import URL
 
 # Add project root to path so we can import src.config
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
@@ -24,9 +26,26 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Get database URL from our config module
-# We pass it directly to context.configure() to avoid configparser
-# interpreting % in the URL (e.g. %40 for @) as interpolation syntax.
-database_url = get_db_url()
+raw_database_url = get_db_url()
+
+# Parse the URL to extract components, avoiding psycopg2's URL parser issues
+# with usernames containing dots (e.g., postgres.xxx@pooler.supabase.com)
+def parse_database_url(url: str) -> dict:
+    """Parse database URL into connection parameters."""
+    parsed = urlparse(url)
+    return {
+        "drivername": "postgresql+psycopg2",
+        "username": parsed.username,
+        "password": parsed.password,
+        "host": parsed.hostname,
+        "port": parsed.port or 5432,
+        "database": parsed.path.lstrip("/"),
+    }
+
+db_params = parse_database_url(raw_database_url)
+
+# Create SQLAlchemy URL object from parsed components (bypasses URL string parsing)
+database_url = URL.create(**db_params)
 
 # target_metadata = None  # We'll use autogenerate
 target_metadata = None
@@ -67,8 +86,6 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    from sqlalchemy import create_engine
-
     connectable = create_engine(database_url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:

@@ -2,13 +2,27 @@
 
 import asyncio
 import os
+from urllib.parse import urlparse
 
 import asyncpg
 
 
+def parse_database_url(url: str) -> dict:
+    """Parse database URL into connection parameters for asyncpg."""
+    parsed = urlparse(url)
+    return {
+        "user": parsed.username,
+        "password": parsed.password,
+        "host": parsed.hostname,
+        "port": parsed.port or 5432,
+        "database": parsed.path.lstrip("/"),
+    }
+
+
 async def cleanup() -> None:
     """Delete old data from listings, price_history, and alerts_sent tables."""
-    conn = await asyncpg.connect(os.environ["SUPABASE_DB_URL"])
+    conn_params = parse_database_url(os.environ["SUPABASE_DB_URL"])
+    conn = await asyncpg.connect(**conn_params)
     try:
         await conn.execute(
             """

@@ -1,8 +1,23 @@
 """Database connection pool for asyncpg."""
 
+from urllib.parse import urlparse
+
 import asyncpg
 
 from src.config import get_db_url
+
+
+def parse_database_url(url: str) -> dict:
+    """Parse database URL into connection parameters for asyncpg."""
+    parsed = urlparse(url)
+    return {
+        "user": parsed.username,
+        "password": parsed.password,
+        "host": parsed.hostname,
+        "port": parsed.port or 5432,
+        "database": parsed.path.lstrip("/"),
+    }
+
 
 _pool: asyncpg.Pool | None = None
 
@@ -12,12 +27,9 @@ async def get_pool() -> asyncpg.Pool:
     global _pool
     if _pool is None:
         db_url = get_db_url()
-        # Convert postgresql:// to postgresql:// for asyncpg (asyncpg uses same format)
-        # But asyncpg expects postgresql:// not postgres://
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        conn_params = parse_database_url(db_url)
         _pool = await asyncpg.create_pool(
-            db_url,
+            **conn_params,
             min_size=1,
             max_size=10,
             command_timeout=30,

@@ -118,7 +118,7 @@ def run_migrations_online() -> None:
     """
     import psycopg2
 
-    def creator():
+    def creator() -> "psycopg2.extensions.connection":
         # Direct psycopg2 connection with explicit parameters
         # This completely bypasses SQLAlchemy's URL/dialect parsing
         print(f"DEBUG creator: user={db_params['username']!r}, host={db_params['host']!r}, port={db_params['port']}, dbname={db_params['database']!r}")

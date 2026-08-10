@@ -8,14 +8,13 @@ and confidence scores.
 
 from __future__ import annotations
 
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
 from src.analyzer.gem_detector import GemDetector, create_gem_detector
 from src.steam.models import GemType
-from src.steam.parser import ListingParser, parse_listing_page
+from src.steam.parser import ListingParser
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "listings"
 
@@ -241,7 +240,7 @@ class TestGemDetector:
 
     def test_gem_type_mapping_correct(self) -> None:
         """Test that all canonical gems map to correct GemType."""
-        for canonical_lower, gem_type in self.detector._canonical_to_type.items():
+        for _canonical_lower, gem_type in self.detector._canonical_to_type.items():
             assert gem_type in (GemType.ETHEREAL, GemType.PRISMATIC)
 
     def test_alias_matching_foulfell(self) -> None:
@@ -276,7 +275,7 @@ class TestGemDetector:
             <div>This courier has 0 sockets.</div>
         </body></html>
         """
-        gems = self.detector.detect_gems(html)
+        self.detector.detect_gems(html)
         # Should not detect Ethereal Flame as a socketed gem
         # (though currently the detector doesn't know about item names,
         # this is a known limitation - the parser handles this)

@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -58,7 +58,7 @@ class GemDetector:
     def _load_gem_database(self) -> None:
         """Load gem database from JSON file and build lookup structures."""
         try:
-            with open(self._gem_db_path, "r", encoding="utf-8") as f:
+            with open(self._gem_db_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             self._gem_entries = []
@@ -219,7 +219,7 @@ class GemDetector:
                     gem_name=canonical,
                     socket_index=socket_index,
                     is_rare=is_rare,
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(UTC),
                 )
 
                 if canonical_lower not in gem_candidates or confidence > gem_candidates[canonical_lower][1]:
@@ -272,7 +272,7 @@ class GemDetector:
                     gem_name=canonical,
                     socket_index=socket_index,
                     is_rare=is_rare,
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(UTC),
                 )
 
                 # Deduplicate: keep highest confidence for each canonical gem

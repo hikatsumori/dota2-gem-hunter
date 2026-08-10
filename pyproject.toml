@@ -24,6 +24,16 @@ build-backend = "setuptools.build_meta"
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "dist",
+    "build",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -38,14 +48,7 @@ ignore = [
     "E501",  # line too long (handled by line-length)
     "B008",  # do not perform function calls in argument defaults
 ]
-exclude = [
-    ".git",
-    "__pycache__",
-    ".venv",
-    "dist",
-    "build",
-    "*.egg-info",
-]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

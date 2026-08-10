@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from src.database.connection import get_pool
 
 if TYPE_CHECKING:
-    import asyncpg
+    pass
 
 logger = logging.getLogger(__name__)
 

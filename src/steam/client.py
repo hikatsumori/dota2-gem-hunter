@@ -9,8 +9,9 @@ and Steam WebAPI endpoints.
 import asyncio
 import logging
 import random
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator
+from typing import Any
 
 import httpx
 from pydantic import ValidationError

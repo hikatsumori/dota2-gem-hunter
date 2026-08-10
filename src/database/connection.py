@@ -1,6 +1,7 @@
 """Database connection pool for asyncpg."""
 
 import asyncpg
+
 from src.config import get_db_url
 
 _pool: asyncpg.Pool | None = None

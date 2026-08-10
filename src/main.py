@@ -9,29 +9,35 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import UTC, datetime
 from decimal import Decimal
-from datetime import datetime, UTC
 from typing import TYPE_CHECKING
 
-from src.config import SCAN_CONFIG, ALERT_RULES, get_db_url, validate_required_env
-from src.database.connection import get_pool, close_pool
+from src.analyzer.gem_detector import GemDetector
+from src.analyzer.price_analyzer import PriceAnalyzer
+from src.config import SCAN_CONFIG, validate_required_env
+from src.database.connection import close_pool, get_pool
 from src.database.repositories import (
+    AlertRepository,
+    GemRepository,
     ItemRepository,
     ListingRepository,
-    GemRepository,
     PriceHistoryRepository,
-    AlertRepository,
 )
-from src.steam.client import SteamWebClient, create_steam_client
-from src.steam.models import Item, Listing, Gem, GemType, ListingPageData, PriceHistory, MarketSearchResult
-from src.steam.parser import ListingParser
-from src.analyzer.gem_detector import GemDetector
-from src.analyzer.price_analyzer import PriceAnalyzer, AlertMatch
-from src.notifier.discord import DiscordNotifier
 from src.health import log_scan_metrics
+from src.notifier.discord import DiscordNotifier
+from src.steam.client import create_steam_client
+from src.steam.models import (
+    Gem,
+    Item,
+    Listing,
+    ListingPageData,
+    PriceHistory,
+)
+from src.steam.parser import ListingParser
 
 if TYPE_CHECKING:
-    import asyncpg
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -328,7 +334,7 @@ async def scan_item_type(item_type: str) -> ScanMetrics:
                 if not listings:
                     continue
 
-                prices = [l.price_usd for l in listings]
+                prices = [listing.price_usd for listing in listings]
                 min_price = min(prices)
                 max_price = max(prices)
                 avg_price = sum(prices, Decimal("0")) / Decimal(str(len(prices)))

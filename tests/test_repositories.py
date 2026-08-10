@@ -6,12 +6,10 @@ For full integration tests, a test database (Supabase local or PostgreSQL) would
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
-import asyncpg
 import pytest
 
 from src.database.repositories import (
@@ -21,7 +19,7 @@ from src.database.repositories import (
     ListingRepository,
     PriceHistoryRepository,
 )
-from src.steam.models import AlertRule, AlertSent, Gem, GemType, Item, Listing, PriceHistory
+from src.steam.models import Gem, GemType, Item, Listing, PriceHistory
 
 
 class MockConnection:
@@ -121,7 +119,7 @@ def sample_item() -> Item:
         rarity="Mythical",
         can_have_sockets=True,
         max_sockets=2,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(UTC),
     )
 
 
@@ -137,8 +135,8 @@ def sample_listing(sample_item: Item) -> Listing:
         seller_steamid="76561198000000000",
         listing_url="https://steamcommunity.com/market/listings/570/1234567890",
         raw_description="Ethereal Gem: Ethereal Flame",
-        fetched_at=datetime.utcnow(),
-        expires_at=datetime.utcnow() + timedelta(days=7),
+        fetched_at=datetime.now(UTC),
+        expires_at=datetime.now(UTC) + timedelta(days=7),
     )
 
 
@@ -152,7 +150,7 @@ def sample_gems() -> list[Gem]:
             gem_name="Ethereal Flame",
             socket_index=0,
             is_rare=True,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         ),
         Gem(
             id=2,
@@ -161,7 +159,7 @@ def sample_gems() -> list[Gem]:
             gem_name="Prismatic Gem",
             socket_index=1,
             is_rare=True,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         ),
     ]
 
@@ -283,7 +281,7 @@ class TestGemRepository:
                     "gem_name": "Ethereal Flame",
                     "socket_index": 0,
                     "is_rare": True,
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(UTC),
                 },
                 {
                     "id": 2,
@@ -292,7 +290,7 @@ class TestGemRepository:
                     "gem_name": "Prismatic Gem",
                     "socket_index": 1,
                     "is_rare": True,
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(UTC),
                 },
             ]
         ]
@@ -313,7 +311,7 @@ class TestPriceHistoryRepository:
             avg_price_usd=Decimal("150.00"),
             max_price_usd=Decimal("200.00"),
             listing_count=10,
-            recorded_at=datetime.utcnow(),
+            recorded_at=datetime.now(UTC),
         )
         mock_pool.connection.fetchrow_results = [{"id": 1}]
         ph_id = await price_history_repo.record_price_history(ph)

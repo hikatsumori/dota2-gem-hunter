@@ -60,6 +60,7 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          pip install psycopg2-binary
           alembic upgrade head
 
       # ─── Run Scanner ──────────────────────────────────────────────────────
@@ -77,25 +78,7 @@ jobs:
         if: always()
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: |
-          python -c "
-          import asyncio
-          import asyncpg
-          import os
-          async def cleanup():
-              conn = await asyncpg.connect(os.environ['SUPABASE_DB_URL'])
-              await conn.execute('''
-                  DELETE FROM listings WHERE fetched_at < NOW() - INTERVAL '30 days'
-              ''')
-              await conn.execute('''
-                  DELETE FROM price_history WHERE recorded_at < NOW() - INTERVAL '30 days'
-              ''')
-              await conn.execute('''
-                  DELETE FROM alerts_sent WHERE sent_at < NOW() - INTERVAL '30 days'
-              ''')
-              await conn.close()
-          asyncio.run(cleanup())
-          print('Cleanup completed')
+        run: python scripts/cleanup_old_data.py
 
       # ─── Upload logs on failure ───────────────────────────────────────────
       - name: Upload logs on failure

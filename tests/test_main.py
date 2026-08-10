@@ -7,28 +7,23 @@ Tests scan_item_type() and main() with all external dependencies mocked.
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 from decimal import Decimal
-from datetime import datetime, UTC
 from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Any
 
 import pytest
 
-from src.main import ScanMetrics, scan_item_type, main
-from src.steam.models import (
-    MarketSearchResponse,
-    MarketSearchResult,
-    ListingPageData,
-    GemParseData,
-    GemType,
-    Item,
-    Listing,
-    Gem,
-    PriceHistory,
-)
 from src.analyzer.price_analyzer import AlertMatch
 from src.config import SCAN_CONFIG
-
+from src.main import ScanMetrics, main, scan_item_type
+from src.steam.models import (
+    Gem,
+    GemParseData,
+    GemType,
+    ListingPageData,
+    MarketSearchResponse,
+    MarketSearchResult,
+)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Fixtures
@@ -276,8 +271,6 @@ class MockSetup:
         #    If not deduplicated: alert_repo.record_alert_sent -> fetchrow for rule lookup + insert
         # 5. Price history: price_history_repo.record_price_history -> fetchrow returning id
 
-        total_listings = pages_to_scan * results_per_page
-
         item_id_counter = 1
         listing_db_id_counter = 10
         gem_id_counter = 20
@@ -299,12 +292,10 @@ class MockSetup:
 
                 # Item upsert
                 side_effects.append({"id": item_id_counter})
-                item_id = item_id_counter
                 item_id_counter += 1
 
                 # Listing insert
                 side_effects.append({"id": listing_db_id_counter})
-                listing_db_id = listing_db_id_counter
                 listing_db_id_counter += 1
 
                 # Gem inserts
@@ -315,7 +306,7 @@ class MockSetup:
                 # Alert checks (if analyzer returns alerts)
                 if analyzer_alerts:
                     alerts_for_page = analyzer_alerts[page] if page < len(analyzer_alerts) else []
-                    for alert_match in alerts_for_page:
+                    for _alert_match in alerts_for_page:
                         # has_alert_been_sent: first lookup rule by name
                         dedup = False
                         if alert_dedup_results:
@@ -686,7 +677,7 @@ async def test_main_runs_all_item_types(
         mock_scan_item_type.side_effect = mock_scan_results
 
         mock_notifier = AsyncMock()
-        DiscordNotifier = mock_notifier_chain = patch("src.main.DiscordNotifier").__enter__()
+        DiscordNotifier = patch("src.main.DiscordNotifier").__enter__()
         DiscordNotifier.return_value = mock_notifier
 
         await main()

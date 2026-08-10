@@ -15,7 +15,6 @@ import pytest
 from src.steam.models import GemType, ListingPageData
 from src.steam.parser import ListingParser, parse_listing_page
 
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "listings"
 
 

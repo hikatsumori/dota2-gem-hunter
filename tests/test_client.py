@@ -3,11 +3,12 @@ Tests for SteamWebClient.
 """
 
 import pytest
+
 from src.steam.client import (
-    SteamWebClient,
-    create_steam_client,
     ITEM_TYPE_QUERY_MAP,
     USER_AGENTS,
+    SteamWebClient,
+    create_steam_client,
 )
 
 

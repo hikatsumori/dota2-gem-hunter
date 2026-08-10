@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime, UTC
 from typing import Any
 from unittest.mock import AsyncMock
+
 import pytest
 
-from src.cleanup import cleanup_old_data, cleanup_gems_orphaned
+from src.cleanup import cleanup_gems_orphaned, cleanup_old_data
 
 
 class MockConnection:

@@ -7,7 +7,6 @@ independently (e.g., via cron) to remove data older than the retention period.
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
 
 from src.database.connection import close_pool, get_pool
 from src.database.repositories import (
@@ -89,7 +88,6 @@ async def cleanup_gems_orphaned() -> int:
     logger.info("Checking for orphaned gems...")
 
     pool = await get_pool()
-    gem_repo = GemRepository(pool)
 
     try:
         async with pool.acquire() as conn:

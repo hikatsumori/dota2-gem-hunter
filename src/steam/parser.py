@@ -11,9 +11,9 @@ import logging
 import re
 from decimal import Decimal
 from typing import Any
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # type: ignore[import-untyped]
 
 from src.steam.models import GemParseData, GemType, ListingPageData
 
@@ -50,7 +50,7 @@ class ListingParser:
 
         gem_db_path = Path(__file__).parent.parent.parent / "data" / "gems.json"
         try:
-            with open(gem_db_path, "r") as f:
+            with open(gem_db_path) as f:
                 data = json.load(f)
             gem_map: dict[str, tuple[str, GemType]] = {}
             for gem_type_str, gems in data.items():
@@ -201,8 +201,6 @@ class ListingParser:
             ".market_table_value .market_listing_price",
             "span.market_listing_price",
         ]
-
-        currency = "USD"
 
         for selector in price_selectors:
             try:
@@ -364,7 +362,7 @@ class ListingParser:
 
         socket_index = 0
         in_socket_context = False  # Track if previous line was a socket label
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             # Skip lines that are just the item name (to avoid matching gems in item name)
             if line.lower() == item_name:
                 continue

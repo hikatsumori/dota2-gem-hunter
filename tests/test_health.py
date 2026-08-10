@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime, UTC, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+
 import pytest
 
-from src.health import log_scan_metrics, get_recent_scan_metrics, get_scan_metrics_summary
+from src.health import get_recent_scan_metrics, get_scan_metrics_summary, log_scan_metrics
 
 
 class MockConnection:

@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from typing import Any
 
 import asyncpg
 
-from src.steam.models import AlertRule, AlertSent, Gem, GemType, Item, Listing, PriceHistory
+from src.steam.models import Gem, GemType, Item, Listing, PriceHistory
 
 
 class ItemRepository:

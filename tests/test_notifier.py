@@ -8,17 +8,16 @@ and error handling with mocked httpx.
 from __future__ import annotations
 
 import time
-from decimal import Decimal
 from datetime import UTC, datetime
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import httpx
+import pytest
 
-from src.notifier.discord import DiscordNotifier, RateLimiter, create_discord_notifier
 from src.analyzer.price_analyzer import AlertMatch
+from src.notifier.discord import DiscordNotifier, RateLimiter, create_discord_notifier
 from src.steam.models import Gem, GemType, Item, Listing
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Test Fixtures / Helpers
@@ -510,8 +509,12 @@ class TestDiscordNotifierConfig:
         settings = Settings()
         assert settings.discord_webhook_url == "https://discord.com/api/webhooks/from_env"
 
-    def test_webhook_url_required(self) -> None:
+    def test_webhook_url_required(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test ValueError raised when webhook URL not provided."""
+        # Patch the settings in the notifier module where it's used
+        monkeypatch.setattr("src.notifier.discord.settings.discord_webhook_url", "")
+        monkeypatch.delenv("DISCORD_WEBHOOK_URL", raising=False)
+
         with pytest.raises(ValueError, match="Discord webhook URL not configured"):
             DiscordNotifier(webhook_url=None)
 

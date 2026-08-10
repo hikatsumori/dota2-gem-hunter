@@ -346,7 +346,7 @@ class DiscordNotifier:
         }
 
         try:
-            response = await self._send_with_retry(payload)
+            await self._send_with_retry(payload)
             logger.info(
                 f"Discord alert sent successfully for {item.name} "
                 f"(rule: {alert_match.rule_name}, discount: {alert_match.discount_pct}%)"

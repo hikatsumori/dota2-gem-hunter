@@ -7,16 +7,14 @@ and edge cases (no history, zero average price, empty gems, etc.).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from decimal import Decimal
 from datetime import UTC, datetime
+from decimal import Decimal
 
 import pytest
 
-from src.analyzer.price_analyzer import AlertMatch, PriceAnalyzer, create_price_analyzer
+from src.analyzer.price_analyzer import PriceAnalyzer, create_price_analyzer
 from src.config import ALERT_RULES
 from src.steam.models import Gem, GemType, Item, Listing
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Test Fixtures / Helpers
@@ -582,8 +580,8 @@ class TestAlertRulesConfig:
             assert "max_price_usd" in rule
             assert "min_discount_pct" in rule
             assert isinstance(rule["gem_types"], list)
-            assert isinstance(rule["max_price_usd"], (int, float))
-            assert isinstance(rule["min_discount_pct"], (int, float))
+            assert isinstance(rule["max_price_usd"], int | float)
+            assert isinstance(rule["min_discount_pct"], int | float)
 
     def test_rule1_ethereal_under_100(self) -> None:
         """Test Rule 1 configuration."""

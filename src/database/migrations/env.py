@@ -38,7 +38,6 @@ def parse_database_url(url: str) -> dict:
     """Parse database URL into connection parameters."""
     parsed = urlparse(url)
     return {
-        "drivername": "postgresql+psycopg2",
         "username": parsed.username,
         "password": parsed.password,
         "host": parsed.hostname,
@@ -61,10 +60,17 @@ if db_params["password"] is None:
 # Debug: print parsed components
 print(f"DEBUG: db_params = {db_params}")
 
-# Create SQLAlchemy URL object from parsed components (bypasses URL string parsing)
-database_url = URL.create(**db_params)
+# Create a minimal SQLAlchemy URL WITHOUT credentials - only host/port/database
+# This prevents SQLAlchemy's dialect from extracting username from URL
+# Credentials will be passed exclusively via connect_args
+database_url = URL.create(
+    drivername="postgresql+psycopg2",
+    host=db_params["host"],
+    port=db_params["port"],
+    database=db_params["database"],
+)
 
-# Debug: print final URL object
+# Debug: print final URL object (no credentials)
 print(f"DEBUG: database_url = {database_url}")
 print(f"DEBUG: database_url.username = {database_url.username}")
 print(f"DEBUG: database_url.password = {'***' if database_url.password else 'None'}")

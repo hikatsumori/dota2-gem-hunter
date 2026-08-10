@@ -10,12 +10,28 @@ import asyncpg
 def parse_database_url(url: str) -> dict:
     """Parse database URL into connection parameters for asyncpg."""
     parsed = urlparse(url)
+    username = parsed.username
+    password = parsed.password
+    host = parsed.hostname
+    port = parsed.port or 5432
+    database = parsed.path.lstrip("/")
+
+    # Detect Supabase pooler URL and convert to direct connection
+    # Pooler: host=aws-*-*.pooler.supabase.com, user=postgres.<project-ref>
+    # Direct: host=db.<project-ref>.supabase.co, user=postgres, port=5432
+    if host and host.endswith(".pooler.supabase.com") and username and username.startswith("postgres."):
+        project_ref = username.split(".", 1)[1]  # Get part after "postgres."
+        host = f"db.{project_ref}.supabase.co"
+        port = 5432
+        username = "postgres"
+        print(f"DEBUG: Converted pooler URL to direct connection: host={host}, user={username}, port={port}")
+
     return {
-        "user": parsed.username,
-        "password": parsed.password,
-        "host": parsed.hostname,
-        "port": parsed.port or 5432,
-        "database": parsed.path.lstrip("/"),
+        "user": username,
+        "password": password,
+        "host": host,
+        "port": port,
+        "database": database,
     }
 
 

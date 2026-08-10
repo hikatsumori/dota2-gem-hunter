@@ -101,8 +101,21 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
+    Uses a custom creator to bypass psycopg2's URL parser bug
+    with usernames containing dots (postgres.xxx@pooler.supabase.com).
     """
-    connectable = create_engine(database_url, poolclass=pool.NullPool)
+    import psycopg2
+
+    def creator():
+        return psycopg2.connect(
+            user=db_params["username"],
+            password=db_params["password"],
+            host=db_params["host"],
+            port=db_params["port"],
+            dbname=db_params["database"],
+        )
+
+    connectable = create_engine("postgresql+psycopg2://", creator=creator, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(

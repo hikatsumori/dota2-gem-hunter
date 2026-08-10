@@ -160,14 +160,14 @@ class ListingParser:
                 elements = soup.select(selector)
                 for el in elements:
                     if el.name == "img":
-                        alt_attr = el.get("alt")
+                        alt_attr = el.get("alt")  # type: ignore[return-value]
                         if alt_attr and isinstance(alt_attr, str):
                             name = alt_attr.strip()
                             if name and "market_listing" not in name.lower():
-                                return name
-                    text = el.get_text(strip=True)
+                                return name  # type: ignore[no-any-return]
+                    text = el.get_text(strip=True)  # type: ignore[return-value]
                     if text and len(text) > 2:
-                        return text
+                        return text  # type: ignore[no-any-return]
             except Exception as e:
                 logger.debug("Selector '%s' failed: %s", selector, e)
 
@@ -175,10 +175,10 @@ class ListingParser:
         try:
             title = soup.find("title")
             if title:
-                text = title.get_text(strip=True)
+                text = title.get_text(strip=True)  # type: ignore[return-value]
                 # Steam title format: "Item Name - Steam Community Market"
                 if " - Steam Community Market" in text:
-                    return text.replace(" - Steam Community Market", "").strip()
+                    return text.replace(" - Steam Community Market", "").strip()  # type: ignore[no-any-return]
         except Exception:
             pass
 

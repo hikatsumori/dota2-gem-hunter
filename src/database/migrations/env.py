@@ -6,7 +6,7 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import pool
 
 # Add project root to path so we can import src.config
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
@@ -24,10 +24,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Get database URL from our config module
-# But allow override via alembic.ini or environment
+# We pass it directly to context.configure() to avoid configparser
+# interpreting % in the URL (e.g. %40 for @) as interpolation syntax.
 database_url = get_db_url()
-if database_url:
-    config.set_main_option("sqlalchemy.url", database_url)
 
 # target_metadata = None  # We'll use autogenerate
 target_metadata = None
@@ -50,9 +49,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -69,11 +67,9 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    from sqlalchemy import create_engine
+
+    connectable = create_engine(database_url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(

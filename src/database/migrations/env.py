@@ -101,21 +101,31 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
-    Uses a custom creator to bypass psycopg2's URL parser bug
+    Uses connect_args to bypass psycopg2's URL parser bug
     with usernames containing dots (postgres.xxx@pooler.supabase.com).
     """
     import psycopg2
 
-    def creator():
-        return psycopg2.connect(
-            user=db_params["username"],
-            password=db_params["password"],
-            host=db_params["host"],
-            port=db_params["port"],
-            dbname=db_params["database"],
-        )
+    # Map db_params to psycopg2 connect arguments
+    # psycopg2 uses: user, password, host, port, dbname
+    connect_args = {
+        "user": db_params["username"],
+        "password": db_params["password"],
+        "host": db_params["host"],
+        "port": db_params["port"],
+        "dbname": db_params["database"],
+        # Force TCP connection (not unix socket)
+        "connect_timeout": 10,
+    }
 
-    connectable = create_engine("postgresql+psycopg2://", creator=creator, poolclass=pool.NullPool)
+    # Debug: print what we're passing to psycopg2 via connect_args
+    print(f"DEBUG connect_args: user={connect_args['user']!r}, host={connect_args['host']!r}, port={connect_args['port']}, dbname={connect_args['dbname']!r}")
+
+    connectable = create_engine(
+        "postgresql+psycopg2://",
+        connect_args=connect_args,
+        poolclass=pool.NullPool,
+    )
 
     with connectable.connect() as connection:
         context.configure(

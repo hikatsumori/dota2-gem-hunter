@@ -113,28 +113,28 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
-    Uses connect_args to bypass psycopg2's URL parser bug
-    with usernames containing dots (postgres.xxx@pooler.supabase.com).
+    Uses a custom creator function to bypass SQLAlchemy's dialect
+    which was defaulting to user "postgres" instead of the pooler username.
     """
+    import psycopg2
 
-    # Map db_params to psycopg2 connect arguments
-    # psycopg2 uses: user, password, host, port, dbname
-    connect_args = {
-        "user": db_params["username"],
-        "password": db_params["password"],
-        "host": db_params["host"],
-        "port": db_params["port"],
-        "dbname": db_params["database"],
-        # Force TCP connection (not unix socket)
-        "connect_timeout": 10,
-    }
+    def creator():
+        # Direct psycopg2 connection with explicit parameters
+        # This completely bypasses SQLAlchemy's URL/dialect parsing
+        print(f"DEBUG creator: user={db_params['username']!r}, host={db_params['host']!r}, port={db_params['port']}, dbname={db_params['database']!r}")
+        return psycopg2.connect(
+            user=db_params["username"],
+            password=db_params["password"],
+            host=db_params["host"],
+            port=db_params["port"],
+            dbname=db_params["database"],
+            connect_timeout=10,
+        )
 
-    # Debug: print what we're passing to psycopg2 via connect_args
-    print(f"DEBUG connect_args: user={connect_args['user']!r}, host={connect_args['host']!r}, port={connect_args['port']}, dbname={connect_args['dbname']!r}")
-
+    # Use a dummy URL - the creator function will be used instead
     connectable = create_engine(
-        database_url,
-        connect_args=connect_args,
+        "postgresql+psycopg2://",
+        creator=creator,
         poolclass=pool.NullPool,
     )
 

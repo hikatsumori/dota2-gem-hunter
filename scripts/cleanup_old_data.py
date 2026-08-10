@@ -21,10 +21,13 @@ def parse_database_url(url: str) -> dict:
 
 async def cleanup() -> None:
     """Delete old data from listings, price_history, and alerts_sent tables."""
+    # Parse URL to get host/port/database, but use PGPASSWORD for password
     conn_params = parse_database_url(os.environ["SUPABASE_DB_URL"])
-    # Fallback to PGPASSWORD env var if not in URL (for pooler connections)
-    if conn_params["password"] is None:
-        conn_params["password"] = os.environ.get("PGPASSWORD")
+    # Use PGPASSWORD env var (set in GitHub Actions) for password
+    # This avoids URL parsing issues with special characters in password
+    conn_params["password"] = os.environ.get("PGPASSWORD")
+    if not conn_params["password"]:
+        raise RuntimeError("PGPASSWORD environment variable not set")
     conn = await asyncpg.connect(**conn_params)
     try:
         await conn.execute(

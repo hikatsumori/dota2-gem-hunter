@@ -35,6 +35,7 @@ jobs:
     timeout-minutes: 30
     env:
       PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
     steps:
       # ─── Checkout ─────────────────────────────────────────────────────────
@@ -59,8 +60,6 @@ jobs:
 
       # ─── Run Database Migrations ──────────────────────────────────────────
       - name: Run database migrations
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           pip install psycopg2-binary
           alembic upgrade head
@@ -68,7 +67,6 @@ jobs:
       # ─── Run Scanner ──────────────────────────────────────────────────────
       - name: Run socket scanner
         env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           STEAM_WEBAPI_KEY: ${{ secrets.STEAM_WEBAPI_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GITHUB_ACTIONS: "true"
@@ -78,8 +76,6 @@ jobs:
       # ─── Cleanup (Optional) ───────────────────────────────────────────────
       - name: Cleanup old data (30+ days)
         if: always()
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python scripts/cleanup_old_data.py
 
       # ─── Upload logs on failure ───────────────────────────────────────────

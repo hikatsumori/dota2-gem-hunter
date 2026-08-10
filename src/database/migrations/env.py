@@ -28,6 +28,9 @@ if config.config_file_name is not None:
 # Get database URL from our config module
 raw_database_url = get_db_url()
 
+# Debug: print raw URL (will show in GitHub Actions logs)
+print(f"DEBUG: raw_database_url = {raw_database_url}")
+
 # Parse the URL to extract components, avoiding psycopg2's URL parser issues
 # with usernames containing dots (e.g., postgres.xxx@pooler.supabase.com)
 def parse_database_url(url: str) -> dict:
@@ -44,8 +47,15 @@ def parse_database_url(url: str) -> dict:
 
 db_params = parse_database_url(raw_database_url)
 
+# Debug: print parsed components
+print(f"DEBUG: db_params = {db_params}")
+
 # Create SQLAlchemy URL object from parsed components (bypasses URL string parsing)
 database_url = URL.create(**db_params)
+
+# Debug: print final URL object
+print(f"DEBUG: database_url = {database_url}")
+print(f"DEBUG: database_url.username = {database_url.username}")
 
 # target_metadata = None  # We'll use autogenerate
 target_metadata = None

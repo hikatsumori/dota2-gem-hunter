@@ -1,6 +1,7 @@
 # Alembic environment configuration for Dota 2 Socket Scanner
 # This file is used by Alembic to configure the migration environment
 
+import os
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -48,7 +49,6 @@ def parse_database_url(url: str) -> dict:
 db_params = parse_database_url(raw_database_url)
 
 # If password is not in URL, get from PGPASSWORD env var (set in GitHub Actions)
-import os
 if db_params["password"] is None:
     db_params["password"] = os.environ.get("PGPASSWORD")
 
@@ -110,7 +110,6 @@ def run_migrations_online() -> None:
     Uses connect_args to bypass psycopg2's URL parser bug
     with usernames containing dots (postgres.xxx@pooler.supabase.com).
     """
-    import psycopg2
 
     # Map db_params to psycopg2 connect arguments
     # psycopg2 uses: user, password, host, port, dbname
@@ -128,7 +127,7 @@ def run_migrations_online() -> None:
     print(f"DEBUG connect_args: user={connect_args['user']!r}, host={connect_args['host']!r}, port={connect_args['port']}, dbname={connect_args['dbname']!r}")
 
     connectable = create_engine(
-        "postgresql+psycopg2://",
+        database_url,
         connect_args=connect_args,
         poolclass=pool.NullPool,
     )

@@ -22,6 +22,9 @@ def parse_database_url(url: str) -> dict:
 async def cleanup() -> None:
     """Delete old data from listings, price_history, and alerts_sent tables."""
     conn_params = parse_database_url(os.environ["SUPABASE_DB_URL"])
+    # Fallback to PGPASSWORD env var if not in URL (for pooler connections)
+    if conn_params["password"] is None:
+        conn_params["password"] = os.environ.get("PGPASSWORD")
     conn = await asyncpg.connect(**conn_params)
     try:
         await conn.execute(

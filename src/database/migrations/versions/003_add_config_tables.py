@@ -92,14 +92,17 @@ def upgrade() -> None:
     op.create_index('idx_config_audit_table_record', 'config_audit', ['table_name', 'record_id'])
     op.create_index('idx_config_audit_changed_at', 'config_audit', ['changed_at'])
 
-    # 3. Seed alert_rules table with default rules
-    # Using INSERT with ON CONFLICT DO NOTHING to be idempotent
+    # 3. Add unique constraint on alert_rules.name (required for ON CONFLICT)
+    op.create_unique_constraint('alert_rules_name_key', 'alert_rules', ['name'])
+
+    # 4. Seed alert_rules table with default rules
+    # Using INSERT with ON CONFLICT (name) DO NOTHING to be idempotent
     for rule in ALERT_RULES_DEFAULT:
         op.execute(
             sa.text("""
                 INSERT INTO alert_rules (name, gem_type, gem_names, max_price_usd, min_discount_pct, is_active)
                 VALUES (:name, :gem_type, :gem_names, :max_price_usd, :min_discount_pct, :is_active)
-                ON CONFLICT DO NOTHING
+                ON CONFLICT (name) DO NOTHING
             """).bindparams(
                 name=rule['name'],
                 gem_type=rule['gem_type'],

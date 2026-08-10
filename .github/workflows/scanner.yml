@@ -32,7 +32,9 @@ jobs:
   scan:
     name: Scan Steam Market
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Safety timeout (well under 6hr limit)
+    timeout-minutes: 30
+    env:
+      PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
     steps:
       # ─── Checkout ─────────────────────────────────────────────────────────

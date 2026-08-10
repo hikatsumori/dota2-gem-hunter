@@ -47,6 +47,11 @@ def parse_database_url(url: str) -> dict:
 
 db_params = parse_database_url(raw_database_url)
 
+# If password is not in URL, get from PGPASSWORD env var (set in GitHub Actions)
+import os
+if db_params["password"] is None:
+    db_params["password"] = os.environ.get("PGPASSWORD")
+
 # Debug: print parsed components
 print(f"DEBUG: db_params = {db_params}")
 
@@ -56,6 +61,7 @@ database_url = URL.create(**db_params)
 # Debug: print final URL object
 print(f"DEBUG: database_url = {database_url}")
 print(f"DEBUG: database_url.username = {database_url.username}")
+print(f"DEBUG: database_url.password = {'***' if database_url.password else 'None'}")
 
 # target_metadata = None  # We'll use autogenerate
 target_metadata = None

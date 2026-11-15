@@ -1,119 +1,68 @@
-# Alembic environment configuration for Dota 2 Socket Scanner
-# This file is used by Alembic to configure the migration environment
+
+"""Alembic environment configuration."""
 
 import os
-import sys
 from logging.config import fileConfig
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
+import psycopg2
 from alembic import context
 from sqlalchemy import create_engine, pool
 from sqlalchemy.engine import URL
 
-# Add project root to path so we can import src.config
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-# Import our settings to get the database URL
 from src.config import get_db_url
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Project root
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+import sys
+sys.path.insert(0, str(PROJECT_ROOT))
+
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Get database URL from our config module
 raw_database_url = get_db_url()
+parsed = urlparse(raw_database_url)
 
-# Debug: print raw URL (will show in GitHub Actions logs)
-print(f"DEBUG: raw_database_url = {raw_database_url}")
+db_params = {
+    "username": unquote(parsed.username) if parsed.username else None,
+    "password": unquote(parsed.password) if parsed.password else None,
+    "host": parsed.hostname,
+    "port": parsed.port or 5432,
+    "database": parsed.path.lstrip("/") or "postgres",
+}
 
-# Parse the URL to extract components, avoiding psycopg2's URL parser issues
-# with usernames containing dots (e.g., postgres.xxx@pooler.supabase.com)
-def parse_database_url(url: str) -> dict:
-    """Parse database URL into connection parameters."""
-    parsed = urlparse(url)
-    username = parsed.username
-    password = parsed.password
-    host = parsed.hostname
-    port = parsed.port or 5432
-    database = parsed.path.lstrip("/")
-
-    # Detect Supabase pooler URL and convert to direct connection
-    # Pooler: host=aws-*-*.pooler.supabase.com, user=postgres.<project-ref>
-    # Direct: host=db.<project-ref>.supabase.co, user=postgres, port=5432
-    if host and host.endswith(".pooler.supabase.com") and username and username.startswith("postgres."):
-        project_ref = username.split(".", 1)[1]  # Get part after "postgres."
-        host = f"db.{project_ref}.supabase.co"
-        port = 5432
-        username = "postgres"
-        print(f"DEBUG: Converted pooler URL to direct connection: host={host}, user={username}, port={port}")
-
-    return {
-        "username": username,
-        "password": password,
-        "host": host,
-        "port": port,
-        "database": database,
-    }
-
-db_params = parse_database_url(raw_database_url)
-
-# If password is not in URL, get from PGPASSWORD env var (set in GitHub Actions)
-if db_params["password"] is None:
+if not db_params["password"]:
     db_params["password"] = os.environ.get("PGPASSWORD")
 
-# Ensure password is set
-if db_params["password"] is None:
+if not db_params["password"]:
     raise RuntimeError(
-        "Database password not found. Set password in SUPABASE_DB_URL or PGPASSWORD environment variable."
+        "Database password is missing. Check SUPABASE_DB_URL."
     )
 
-# Debug: print parsed components
-print(f"DEBUG: db_params = {db_params}")
+if not db_params["host"] or not db_params["username"]:
+    raise RuntimeError(
+        "Invalid database URL. Check SUPABASE_DB_URL."
+    )
 
-# Create a minimal SQLAlchemy URL WITHOUT credentials - only host/port/database
-# This prevents SQLAlchemy's dialect from extracting username from URL
-# Credentials will be passed exclusively via connect_args
 database_url = URL.create(
     drivername="postgresql+psycopg2",
+    username=db_params["username"],
+    password=db_params["password"],
     host=db_params["host"],
     port=db_params["port"],
     database=db_params["database"],
 )
 
-# Debug: print final URL object (no credentials)
-print(f"DEBUG: database_url = {database_url}")
-print(f"DEBUG: database_url.username = {database_url.username}")
-print(f"DEBUG: database_url.password = {'***' if database_url.password else 'None'}")
-
-# target_metadata = None  # We'll use autogenerate
 target_metadata = None
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
-    """
+    """Run migrations without a live database connection."""
     context.configure(
-        url=database_url,
+        url=database_url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -124,43 +73,23 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    Uses a custom creator function to bypass SQLAlchemy's dialect
-    which was defaulting to user "postgres" instead of the pooler username.
-    """
-    import psycopg2
-
-    def creator() -> "psycopg2.extensions.connection":
-        # Direct psycopg2 connection with explicit parameters
-        # This completely bypasses SQLAlchemy's URL/dialect parsing
-        print(f"DEBUG creator: user={db_params['username']!r}, host={db_params['host']!r}, port={db_params['port']}, dbname={db_params['database']!r}")
-        return psycopg2.connect(
-            user=db_params["username"],
-            password=db_params["password"],
-            host=db_params["host"],
-            port=db_params["port"],
-            dbname=db_params["database"],
-            connect_timeout=10,
-        )
-
-    # Use a dummy URL - the creator function will be used instead
+    """Run migrations using a live database connection."""
     connectable = create_engine(
-        "postgresql+psycopg2://",
-        creator=creator,
+        database_url,
         poolclass=pool.NullPool,
+        connect_args={"connect_timeout": 10},
     )
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
         )
 
         with context.begin_transaction():
             context.run_migrations()
+
+    connectable.dispose()
 
 
 if context.is_offline_mode():

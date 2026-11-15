@@ -25,7 +25,7 @@ from src.database.repositories import (
     PriceHistoryRepository,
 )
 from src.health import log_scan_metrics
-from src.notifier.discord import DiscordNotifier
+from src.notifier.telegram import TelegramNotifier
 from src.steam.client import create_steam_client
 from src.steam.models import (
     Gem,
@@ -112,7 +112,7 @@ async def scan_item_type(item_type: str) -> ScanMetrics:
     parser = ListingParser()
     gem_detector = GemDetector()
     price_analyzer = PriceAnalyzer(price_history_repo)
-    notifier = DiscordNotifier()
+    notifier = TelegramNotifier()
 
     try:
         async with create_steam_client() as steam_client:
